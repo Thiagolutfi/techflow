@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Dashboard responsivo da TechFlow para acompanhamento de projetos, equipes e indicadores." />
+  <title>TechFlow Dashboard</title>
+
+  <script>
+    // Evita "piscar" o tema incorreto antes do carregamento da página.
+    (function () {
+      const savedTheme = localStorage.getItem("techflow-theme") || "system";
+      const systemDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const useDark = savedTheme === "dark" || (savedTheme === "system" && systemDark);
+
+      if (useDark) {
+        document.documentElement.classList.add("dark");
+      }
+    })();
+  </script>
+
+  <script>
+    tailwind = {
+      config: {
+        darkMode: "class",
+        theme: {
+          extend: {
+            boxShadow: {
+              soft: "0 12px 30px rgba(15, 23, 42, 0.08)",
+            },
+          },
+        },
+      },
+    };
+  </script>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body class="min-h-screen bg-slate-100 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+
+  <!-- Overlay mobile -->
+  <div
+    id="sidebarOverlay"
+    class="fixed inset-0 z-30 hidden bg-slate-950/50 backdrop-blur-sm lg:hidden"
+    aria-hidden="true"
+  ></div>
+
+  <div class="min-h-screen lg:flex">
+    <!-- Sidebar -->
+    <aside
+      id="sidebar"
+      class="fixed inset-y-0 left-0 z-40 flex w-72 -translate-x-full flex-col border-r border-slate-200 bg-white px-4 py-5 shadow-xl transition-transform duration-300 ease-in-out dark:border-slate-800 dark:bg-slate-900 lg:static lg:w-64 lg:translate-x-0 lg:shadow-none xl:w-72 2xl:w-80"
+      aria-label="Menu lateral"
+    >
+      <div class="flex items-center justify-between gap-3 px-2">
+        <a href="#" class="flex items-center gap-3">
+          <span class="grid h-10 w-10 place-items-center rounded-xl bg-indigo-600 font-bold text-white shadow-lg shadow-indigo-600/20">TF</span>
+          <div>
+            <p class="font-bold tracking-tight">TechFlow</p>
+            <p class="text-xs text-slate-500 dark:text-slate-400">Project Intelligence</p>
+          </div>
+        </a>
+
+        <button
+          id="closeSidebarBtn"
+          type="button"
+          class="rounded-lg p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 active:scale-95 dark:hover:bg-slate-800 dark:hover:text-white lg:hidden"
+          aria-label="Fechar menu lateral"
+        >
+          ✕
+        </button>
+      </div>
+
+      <nav class="mt-8 flex flex-1 flex-col gap-2">
+        <a href="#dashboard" class="flex items-center gap-3 rounded-xl bg-indigo-50 px-4 py-3 font-semibold text-indigo-700 transition-all duration-200 hover:translate-x-1 dark:bg-indigo-500/10 dark:text-indigo-300">
+          <span>▦</span>
+          Dashboard
+        </a>
+
+        <a href="#projects" class="group flex items-center justify-between rounded-xl px-4 py-3 text-slate-600 transition-all duration-200 hover:translate-x-1 hover:bg-slate-100 hover:text-slate-950 active:scale-[0.98] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+          <span class="flex items-center gap-3">
+            <span>▣</span>
+            Projetos
+          </span>
+          <span class="translate-x-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">→</span>
+        </a>
+
+        <a href="#teams" class="group flex items-center justify-between rounded-xl px-4 py-3 text-slate-600 transition-all duration-200 hover:translate-x-1 hover:bg-slate-100 hover:text-slate-950 active:scale-[0.98] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+          <span class="flex items-center gap-3">
+            <span>◉</span>
+            Equipes
+          </span>
+          <span class="translate-x-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">→</span>
+        </a>
+
+        <a href="#reports" class="group flex items-center justify-between rounded-xl px-4 py-3 text-slate-600 transition-all duration-200 hover:translate-x-1 hover:bg-slate-100 hover:text-slate-950 active:scale-[0.98] dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-white">
+          <span class="flex items-center gap-3">
+            <span>◫</span>
+            Relatórios
+          </span>
+          <span class="translate-x-1 opacity-0 transition-all duration-200 group-hover:translate-x-0 group-hover:opacity-100">→</span>
+        </a>
+      </nav>
+
+      <div class="mt-6 rounded-2xl bg-slate-900 p-4 text-white dark:bg-slate-800">
+        <p class="text-sm font-semibold">Sprint da semana</p>
+        <p class="mt-1 text-xs text-slate-300">18 de 24 tarefas concluídas</p>
+        <div class="mt-3 h-2 overflow-hidden rounded-full bg-white/10">
+          <div class="h-full w-3/4 rounded-full bg-indigo-400"></div>
+        </div>
+      </div>
+    </aside>
+
+    <div class="min-w-0 flex-1">
+      <!-- Navbar -->
+      <header class="sticky top-0 z-20 border-b border-slate-200/80 bg-white/90 backdrop-blur-xl dark:border-slate-800 dark:bg-slate-950/85">
+        <div class="flex flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8 xl:px-10 2xl:px-12">
+          <div class="flex min-w-0 flex-1 items-center gap-3">
+            <button
+              id="openSidebarBtn"
+              type="button"
+              class="rounded-xl border border-slate-200 bg-white p-2.5 text-slate-600 transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 active:scale-95 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 lg:hidden"
+              aria-label="Abrir menu lateral"
+              aria-expanded="false"
+            >
+              ☰
+            </button>
+
+            <div class="relative hidden min-w-0 flex-1 sm:block sm:max-w-md xl:max-w-xl">
+              <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+              <input
+                id="projectSearch"
+                type="search"
+                placeholder="Pesquisar projetos..."
+                class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm outline-none transition-all duration-200 placeholder:text-slate-400 hover:border-slate-300 focus:border-indigo-500 focus:bg-white focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900 dark:focus:border-indigo-400 dark:focus:bg-slate-900"
+              />
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 sm:gap-3">
+            <!-- Tema -->
+            <label class="hidden text-xs font-medium text-slate-500 md:block dark:text-slate-400" for="themeSelect">Tema</label>
+            <select
+              id="themeSelect"
+              class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm outline-none transition hover:border-slate-300 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900"
+              aria-label="Selecionar tema"
+            >
+              <option value="light">Light</option>
+              <option value="dark">Dark</option>
+              <option value="system">System</option>
+            </select>
+
+            <!-- Usuário / dropdown -->
+            <div class="relative">
+              <button
+                id="userMenuButton"
+                type="button"
+                class="flex items-center gap-2 rounded-xl border border-transparent px-2 py-1.5 transition-all hover:border-slate-200 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-indigo-500 active:scale-[0.98] dark:hover:border-slate-700 dark:hover:bg-slate-900"
+                aria-expanded="false"
+                aria-controls="userDropdown"
+              >
+                <div class="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-sm font-bold text-white">AM</div>
+                <div class="hidden text-left md:block">
+                  <p class="text-sm font-semibold">Ana Martins</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400">Product Manager</p>
+                </div>
+                <span class="hidden text-xs text-slate-400 md:block">▼</span>
+              </button>
+
+              <div
+                id="userDropdown"
+                class="absolute right-0 mt-2 hidden w-52 origin-top-right rounded-2xl border border-slate-200 bg-white p-2 shadow-xl dark:border-slate-700 dark:bg-slate-900"
+              >
+                <a href="#" class="block rounded-xl px-3 py-2 text-sm transition hover:bg-slate-100 dark:hover:bg-slate-800">Meu perfil</a>
+                <a href="#" class="block rounded-xl px-3 py-2 text-sm transition hover:bg-slate-100 dark:hover:bg-slate-800">Configurações</a>
+                <hr class="my-2 border-slate-200 dark:border-slate-700" />
+                <button type="button" class="w-full rounded-xl px-3 py-2 text-left text-sm text-rose-600 transition hover:bg-rose-50 dark:hover:bg-rose-500/10">
+                  Sair
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pesquisa mobile -->
+          <div class="relative order-3 w-full sm:hidden">
+            <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">⌕</span>
+            <input
+              id="projectSearchMobile"
+              type="search"
+              placeholder="Pesquisar projetos..."
+              class="w-full rounded-xl border border-slate-200 bg-slate-50 py-2.5 pl-10 pr-4 text-sm outline-none transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-900"
+            />
+          </div>
+        </div>
+      </header>
+
+      <!-- Conteúdo principal -->
+      <main id="dashboard" class="px-4 py-6 sm:px-6 md:py-8 lg:px-8 xl:px-10 2xl:px-12">
+        <section class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <p class="text-sm font-semibold text-indigo-600 dark:text-indigo-400">Visão geral</p>
+            <h1 class="mt-1 text-2xl font-bold tracking-tight sm:text-3xl xl:text-4xl">Dashboard de projetos</h1>
+            <p class="mt-2 max-w-2xl text-sm text-slate-500 dark:text-slate-400 sm:text-base">
+              Acompanhe projetos, tarefas, equipes e prioridades da TechFlow em um só lugar.
+            </p>
+          </div>
+
+          <button
+            id="openProjectModal"
+            type="button"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-4 py-3 font-semibold text-white shadow-lg shadow-indigo-600/20 transition-all duration-200 ease-out hover:-translate-y-0.5 hover:bg-indigo-700 hover:shadow-xl focus:outline-none focus:ring-4 focus:ring-indigo-500/30 active:translate-y-0 active:scale-[0.98]"
+          >
+            <span class="text-lg">＋</span>
+            Novo projeto
+          </button>
+        </section>
+
+        <!-- Indicadores -->
+        <section class="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4 2xl:gap-6" aria-label="Indicadores principais">
+          <article class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-indigo-200 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900 dark:hover:border-indigo-800">
+            <div class="flex items-center justify-between">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-indigo-50 text-indigo-600 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 dark:bg-indigo-500/10 dark:text-indigo-300">▣</span>
+              <span class="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">+8%</span>
+            </div>
+            <p class="mt-5 text-sm text-slate-500 dark:text-slate-400">Projetos ativos</p>
+            <p class="mt-1 text-3xl font-bold">12</p>
+          </article>
+
+          <article class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-emerald-200 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+            <div class="flex items-center justify-between">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-emerald-50 text-emerald-600 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 dark:bg-emerald-500/10 dark:text-emerald-300">✓</span>
+              <span class="rounded-full bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">+14%</span>
+            </div>
+            <p class="mt-5 text-sm text-slate-500 dark:text-slate-400">Projetos concluídos</p>
+            <p class="mt-1 text-3xl font-bold">28</p>
+          </article>
+
+          <article class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-amber-200 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+            <div class="flex items-center justify-between">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-amber-50 text-amber-600 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 dark:bg-amber-500/10 dark:text-amber-300">!</span>
+              <span class="rounded-full bg-rose-50 px-2 py-1 text-xs font-semibold text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">5 urgentes</span>
+            </div>
+            <p class="mt-5 text-sm text-slate-500 dark:text-slate-400">Tarefas pendentes</p>
+            <p class="mt-1 text-3xl font-bold">37</p>
+          </article>
+
+          <article id="teams" class="group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:border-violet-200 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+            <div class="flex items-center justify-between">
+              <span class="grid h-10 w-10 place-items-center rounded-xl bg-violet-50 text-violet-600 transition-transform duration-300 group-hover:rotate-6 group-hover:scale-110 dark:bg-violet-500/10 dark:text-violet-300">◉</span>
+              <span class="rounded-full bg-slate-100 px-2 py-1 text-xs font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-300">42 pessoas</span>
+            </div>
+            <p class="mt-5 text-sm text-slate-500 dark:text-slate-400">Equipes</p>
+            <p class="mt-1 text-3xl font-bold">6</p>
+          </article>
+        </section>
+
+        <!-- Projetos -->
+        <section id="projects" class="mt-10">
+          <div class="flex flex-wrap items-end justify-between gap-3">
+            <div>
+              <h2 class="text-xl font-bold sm:text-2xl">Projetos em destaque</h2>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Cards com tamanhos variados usando CSS Grid.</p>
+            </div>
+
+            <span id="projectCount" class="text-sm font-medium text-slate-500 dark:text-slate-400">6 projetos</span>
+          </div>
+
+          <div id="projectGrid" class="mt-5 grid auto-rows-[minmax(180px,auto)] grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 2xl:gap-6">
+            <!-- Card 1 -->
+            <article data-project="Plataforma Atlas Fintech UX Produto" class="project-card group relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900 md:col-span-2 lg:col-span-2 xl:col-span-2 2xl:col-span-2">
+              <div class="absolute inset-x-0 top-0 h-1 bg-indigo-500"></div>
+              <div class="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <span class="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300">Produto</span>
+                  <h3 class="mt-4 text-xl font-bold transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-400">Plataforma Atlas</h3>
+                  <p class="mt-2 max-w-xl text-sm text-slate-500 dark:text-slate-400">Redesign do ambiente financeiro com foco em onboarding, performance e experiência mobile.</p>
+                </div>
+                <span class="rounded-full bg-amber-50 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-300">Alta</span>
+              </div>
+
+              <div class="mt-6">
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                  <span>Progresso</span>
+                  <span>72%</span>
+                </div>
+                <div class="mt-2 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                  <div class="h-full w-[72%] rounded-full bg-indigo-500"></div>
+                </div>
+              </div>
+
+              <div class="mt-6 flex flex-wrap items-center justify-between gap-3">
+                <div class="flex -space-x-2">
+                  <span class="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-slate-800 text-xs font-semibold text-white dark:border-slate-900">AM</span>
+                  <span class="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-indigo-500 text-xs font-semibold text-white dark:border-slate-900">LC</span>
+                  <span class="grid h-8 w-8 place-items-center rounded-full border-2 border-white bg-violet-500 text-xs font-semibold text-white dark:border-slate-900">BR</span>
+                </div>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Prazo: 28 Out</span>
+              </div>
+            </article>
+
+            <!-- Card 2 - mais alto -->
+            <article data-project="App Pulse Mobile Saúde Aplicativo" class="project-card group rounded-2xl border border-slate-200 bg-gradient-to-br from-indigo-600 to-violet-700 p-5 text-white shadow-lg transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl md:row-span-2 lg:row-span-2 xl:row-span-2">
+              <span class="rounded-full bg-white/15 px-2.5 py-1 text-xs font-semibold backdrop-blur">Mobile</span>
+              <h3 class="mt-4 text-2xl font-bold">App Pulse</h3>
+              <p class="mt-2 text-sm text-indigo-100">Aplicativo de acompanhamento de saúde corporativa com desafios semanais e ranking entre times.</p>
+
+              <div class="mt-8 grid grid-cols-2 gap-3">
+                <div class="rounded-xl bg-white/10 p-3 backdrop-blur">
+                  <p class="text-xs text-indigo-100">Tarefas</p>
+                  <p class="mt-1 text-xl font-bold">18/24</p>
+                </div>
+                <div class="rounded-xl bg-white/10 p-3 backdrop-blur">
+                  <p class="text-xs text-indigo-100">Equipe</p>
+                  <p class="mt-1 text-xl font-bold">8</p>
+                </div>
+                <div class="col-span-2 rounded-xl bg-white/10 p-3 backdrop-blur">
+                  <div class="flex items-center justify-between text-xs text-indigo-100">
+                    <span>Progresso geral</span>
+                    <span>75%</span>
+                  </div>
+                  <div class="mt-2 h-2 overflow-hidden rounded-full bg-white/15">
+                    <div class="h-full w-3/4 rounded-full bg-white"></div>
+                  </div>
+                </div>
+              </div>
+
+              <button type="button" class="mt-8 w-full rounded-xl bg-white px-4 py-3 text-sm font-bold text-indigo-700 transition-all hover:bg-indigo-50 focus:outline-none focus:ring-4 focus:ring-white/30 active:scale-[0.98]">
+                Abrir projeto
+              </button>
+            </article>
+
+            <!-- Card 3 -->
+            <article data-project="Site Nova Era Marketing Landing Page" class="project-card group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+              <div class="flex items-center justify-between">
+                <span class="rounded-full bg-fuchsia-50 px-2.5 py-1 text-xs font-semibold text-fuchsia-700 dark:bg-fuchsia-500/10 dark:text-fuchsia-300">Marketing</span>
+                <span class="text-xs text-slate-400">65%</span>
+              </div>
+              <h3 class="mt-4 text-lg font-bold transition-colors group-hover:text-fuchsia-600">Site Nova Era</h3>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Landing page para nova campanha institucional.</p>
+              <div class="mt-5 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <div class="h-full w-[65%] rounded-full bg-fuchsia-500"></div>
+              </div>
+              <p class="mt-5 text-xs text-slate-500 dark:text-slate-400">Responsável: Júlia Rocha</p>
+            </article>
+
+            <!-- Card 4 -->
+            <article data-project="DataHub Analytics Dados BI Dashboard" class="project-card group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900 lg:col-span-2 xl:col-span-2 2xl:col-span-2">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <span class="rounded-full bg-cyan-50 px-2.5 py-1 text-xs font-semibold text-cyan-700 dark:bg-cyan-500/10 dark:text-cyan-300">Analytics</span>
+                <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">No prazo</span>
+              </div>
+              <h3 class="mt-4 text-lg font-bold transition-colors group-hover:text-cyan-600">DataHub Analytics</h3>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Painel unificado de métricas operacionais para diretoria e coordenação.</p>
+
+              <div class="mt-5 flex flex-wrap gap-2 text-xs">
+                <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-slate-800">BI</span>
+                <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-slate-800">API</span>
+                <span class="rounded-lg bg-slate-100 px-2 py-1 dark:bg-slate-800">Design System</span>
+              </div>
+            </article>
+
+            <!-- Card 5 -->
+            <article data-project="CRM Flow Vendas Comercial CRM" class="project-card group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900">
+              <span class="rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300">Comercial</span>
+              <h3 class="mt-4 text-lg font-bold transition-colors group-hover:text-emerald-600">CRM Flow</h3>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Automação do funil comercial e painel de oportunidades.</p>
+              <div class="mt-5 flex items-center justify-between text-xs">
+                <span class="text-slate-500 dark:text-slate-400">Prazo: 04 Nov</span>
+                <span class="font-semibold text-emerald-600 dark:text-emerald-400">48%</span>
+              </div>
+            </article>
+
+            <!-- Card 6 -->
+            <article data-project="Cloud Sync Infraestrutura DevOps Nuvem" class="project-card group rounded-2xl border border-slate-200 bg-white p-5 shadow-soft transition-all duration-300 hover:-translate-y-1 hover:shadow-xl dark:border-slate-800 dark:bg-slate-900 sm:col-span-2 md:col-span-1 lg:col-span-1 xl:col-span-1">
+              <span class="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-semibold text-sky-700 dark:bg-sky-500/10 dark:text-sky-300">Infraestrutura</span>
+              <h3 class="mt-4 text-lg font-bold transition-colors group-hover:text-sky-600">Cloud Sync</h3>
+              <p class="mt-2 text-sm text-slate-500 dark:text-slate-400">Migração gradual dos serviços internos para ambiente em nuvem.</p>
+              <div class="mt-5 flex items-center gap-2">
+                <span class="h-2.5 w-2.5 rounded-full bg-amber-400"></span>
+                <span class="text-xs text-slate-500 dark:text-slate-400">Revisão de arquitetura</span>
+              </div>
+            </article>
+          </div>
+
+          <div id="emptySearchState" class="mt-5 hidden rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center dark:border-slate-700 dark:bg-slate-900">
+            <p class="font-semibold">Nenhum projeto encontrado.</p>
+            <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Tente pesquisar por outro nome ou categoria.</p>
+          </div>
+        </section>
+
+        <!-- Exemplo extra de interação com peer-checked -->
+        <section id="reports" class="mt-10 rounded-2xl border border-slate-200 bg-white p-5 shadow-soft dark:border-slate-800 dark:bg-slate-900">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 class="font-bold">Notificações de progresso</h2>
+              <p class="mt-1 text-sm text-slate-500 dark:text-slate-400">Exemplo de interação utilizando <code>peer-checked:</code>.</p>
+            </div>
+
+            <label class="inline-flex cursor-pointer items-center gap-3">
+              <input id="notificationToggle" type="checkbox" class="peer sr-only" checked />
+              <span class="relative h-7 w-12 rounded-full bg-slate-300 transition-colors duration-300 after:absolute after:left-1 after:top-1 after:h-5 after:w-5 after:rounded-full after:bg-white after:transition-all after:duration-300 peer-checked:bg-indigo-600 peer-checked:after:translate-x-5 dark:bg-slate-700"></span>
+              <span class="text-sm font-medium text-slate-600 peer-checked:text-indigo-600 dark:text-slate-300 dark:peer-checked:text-indigo-400">Ativas</span>
+            </label>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal Novo Projeto -->
+  <div
+    id="projectModal"
+    class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="modalTitle"
+  >
+    <div class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-3xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-900">
+      <div class="sticky top-0 z-10 flex items-center justify-between border-b border-slate-200 bg-white/95 px-5 py-4 backdrop-blur dark:border-slate-700 dark:bg-slate-900/95 sm:px-6">
+        <div>
+          <p class="text-xs font-semibold uppercase tracking-wider text-indigo-600 dark:text-indigo-400">Cadastro</p>
+          <h2 id="modalTitle" class="text-xl font-bold">Novo Projeto</h2>
+        </div>
+
+        <button
+          id="closeProjectModal"
+          type="button"
+          class="rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 active:scale-95 dark:hover:bg-slate-800 dark:hover:text-white"
+          aria-label="Fechar modal"
+        >
+          ✕
+        </button>
+      </div>
+
+      <form id="projectForm" class="grid grid-cols-1 gap-5 p-5 sm:grid-cols-2 sm:p-6" novalidate>
+        <div class="sm:col-span-2">
+          <label for="projectName" class="mb-2 block text-sm font-semibold">Nome do projeto *</label>
+          <input
+            id="projectName"
+            name="projectName"
+            type="text"
+            required
+            minlength="3"
+            placeholder="Ex.: Portal TechFlow"
+            class="form-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition-all duration-200 hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950"
+          />
+          <p class="error-message mt-1 hidden text-xs font-medium text-rose-600"></p>
+        </div>
+
+        <div>
+          <label for="responsible" class="mb-2 block text-sm font-semibold">Responsável *</label>
+          <input
+            id="responsible"
+            name="responsible"
+            type="text"
+            required
+            minlength="3"
+            placeholder="Nome do responsável"
+            class="form-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition-all duration-200 hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950"
+          />
+          <p class="error-message mt-1 hidden text-xs font-medium text-rose-600"></p>
+        </div>
+
+        <div>
+          <label for="category" class="mb-2 block text-sm font-semibold">Categoria *</label>
+          <select
+            id="category"
+            name="category"
+            required
+            class="form-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition-all duration-200 hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950"
+          >
+            <option value="">Selecione...</option>
+            <option>Produto</option>
+            <option>Marketing</option>
+            <option>Mobile</option>
+            <option>Analytics</option>
+            <option>Infraestrutura</option>
+          </select>
+          <p class="error-message mt-1 hidden text-xs font-medium text-rose-600"></p>
+        </div>
+
+        <div>
+          <label for="priority" class="mb-2 block text-sm font-semibold">Prioridade *</label>
+          <select
+            id="priority"
+            name="priority"
+            required
+            class="form-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition-all duration-200 hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950"
+          >
+            <option value="">Selecione...</option>
+            <option>Baixa</option>
+            <option>Média</option>
+            <option>Alta</option>
+          </select>
+          <p class="error-message mt-1 hidden text-xs font-medium text-rose-600"></p>
+        </div>
+
+        <div>
+          <label for="deadline" class="mb-2 block text-sm font-semibold">Prazo *</label>
+          <input
+            id="deadline"
+            name="deadline"
+            type="date"
+            required
+            class="form-input w-full rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition-all duration-200 hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950"
+          />
+          <p class="error-message mt-1 hidden text-xs font-medium text-rose-600"></p>
+        </div>
+
+        <div class="sm:col-span-2">
+          <label for="description" class="mb-2 block text-sm font-semibold">Descrição *</label>
+          <textarea
+            id="description"
+            name="description"
+            rows="4"
+            required
+            minlength="10"
+            placeholder="Descreva o objetivo e o escopo do projeto..."
+            class="form-input w-full resize-none rounded-xl border border-slate-300 bg-white px-4 py-3 outline-none transition-all duration-200 hover:border-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 dark:border-slate-700 dark:bg-slate-950"
+          ></textarea>
+          <div class="mt-1 flex items-center justify-between gap-3">
+            <p class="error-message hidden text-xs font-medium text-rose-600"></p>
+            <p id="descriptionCounter" class="ml-auto text-xs text-slate-400">0 caracteres</p>
+          </div>
+        </div>
+
+        <div id="formSuccess" class="hidden rounded-xl border border-emerald-200 bg-emerald-50 p-3 text-sm font-medium text-emerald-700 dark:border-emerald-800 dark:bg-emerald-500/10 dark:text-emerald-300 sm:col-span-2">
+          Projeto validado com sucesso! Nenhum dado foi salvo em banco.
+        </div>
+
+        <div class="flex flex-col-reverse gap-3 border-t border-slate-200 pt-5 dark:border-slate-700 sm:col-span-2 sm:flex-row sm:justify-end">
+          <button
+            id="cancelProject"
+            type="button"
+            class="rounded-xl border border-slate-300 px-4 py-3 font-semibold transition-all duration-200 hover:bg-slate-100 focus:outline-none focus:ring-4 focus:ring-slate-300/40 active:scale-[0.98] dark:border-slate-700 dark:hover:bg-slate-800"
+          >
+            Cancelar
+          </button>
+
+          <button
+            id="submitProject"
+            type="submit"
+            disabled
+            class="rounded-xl bg-indigo-600 px-5 py-3 font-semibold text-white transition-all duration-200 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-indigo-500/30 active:scale-[0.98] disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500 disabled:shadow-none dark:disabled:bg-slate-700 dark:disabled:text-slate-400"
+          >
+            Criar projeto
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
